@@ -2,14 +2,14 @@ var express = require('express');
 var router = express.Router();
 //var app = express();
 /* GET home page. */
-var bg = require('../public/javascripts/bg');/*Ìá¹©Êı¾İ*/
+var bg = require('../public/javascripts/bg');/*æä¾›æ•°æ®*/
 
 router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express' });
 });
 
 router.get('/power', function(req, res) {
-  res.render('power',{title:"×î½üÎÄÕÂ", entries:bg.getBlogEntries()});
+  res.render('power',{title:"æœ€è¿‘æ–‡ç« ", entries:bg.getBlogEntries()});
 });
 /**/
 //var http = require('http');
@@ -19,17 +19,31 @@ router.get('/json/power/:id', function(req, res) {
 });
 
 //====================user
-router.post('/user/name/:name/age/:age', function(req, res) {
+/*router.get('/user/name/:name/age/:age', function(req, res) {
   res.writeHead(200, {'Content-Type': 'application/json'});
-  res.end(JSON.stringify(bg.saveUser(req.params.name,req.params.age,null)));
+  bg.saveUser(req.params.name,req.params.age,null)
+  res.end("111");
 });
 router.get('/user/list', function(req, res) {
   res.writeHead(200, {'Content-Type': 'application/json'});
   bg.findUsersEnd(res);
-});
+});*/
 //====================item
+//pn ä»1å¼€å§‹
 router.get('/item/list/p/:pn', function(req, res) {
   res.writeHead(200, {'Content-Type': 'application/json'});
   bg.findItemsEnd(res,req.params.pn);
 });
+//obj_item###http://localhost:3000/item/batch/save?obj_items=[{"name":"91","img":"http://baidu.com/img"}]
+router.post('/item/batch/save', function(req, res) {
+  res.writeHead(200, {'Content-Type': 'application/json'});
+  bg.batchSaveItm(req.query.obj_items);
+  res.end('{}');
+});
+//=====url
+router.get('/history/ref', function(req, res) {
+  res.writeHead(200, {'Content-Type': 'application/json'});
+  bg.batchRefineUrl(res,req.query.urls);
+});
+
 module.exports = router;
