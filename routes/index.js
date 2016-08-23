@@ -37,7 +37,7 @@ router.get('/item/list/p/:pn', function(req, res) {
 //obj_item###http://localhost:3000/item/batch/save?obj_items=[{"name":"91","img":"http://baidu.com/img"}]
 router.post('/item/batch/save', function(req, res) {
   res.writeHead(200, {'Content-Type': 'application/json'});
-  bg.batchSaveItm(req.query.obj_items);
+  bg.batchSaveItm(req.body.obj_items);
   res.end('{}');
 });
 //=====url
@@ -45,5 +45,11 @@ router.get('/history/ref', function(req, res) {
   res.writeHead(200, {'Content-Type': 'application/json'});
   bg.batchRefineUrl(res,req.query.urls);
 });
+//============girl show url
+router.get('/show', function(req, res, next) {
+  res.render('girlShow', { title: 'Express' });
+});
+
+
 
 module.exports = router;

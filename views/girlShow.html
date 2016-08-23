@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>GIRL SHOW</title>
+
+    <link href="../public/stylesheets/bootstrap.min.css">
+    <style>
+        html,body {
+            width: 100%;
+            height: 100%;
+            background-color: #0f0f0f;
+            border: 0px;
+            margin: 0px;
+            padding: 0px;
+        }
+        img {
+            width: 99%;
+            height: auto\9;
+            height:auto;
+            max-height: 90%;
+            min-height: 250px;
+            margin-bottom: 2px;
+        }
+        .in_middle{
+            text-align: center;
+            vertical-align: middle;
+        }
+        .img_container{
+            padding-bottom: 500px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div id="img_viwer" class="container in_middle img_container">
+<!--            <img src="" alt="waiting" img_src="../public/images/111.jpg">
+            <img src="" alt="waiting" img_src="../public/images/111.jpg">-->
+
+        </div>
+    </div>
+<script type="application/javascript" src="../public/javascripts/jquery-3.1.0.min.js"></script>
+<script type="application/javascript" src="javascripts/jquery-3.1.0.min.js"></script>
+<script>
+    //最下方的滚动位置
+    var lastScTp = 0;
+    //已经显示出的图片数,新加载后清空
+    var sdImgNumber = 0;
+    //当前图片分页
+    var pg = 0;
+
+    $(function(){
+        getImgRes(function(){
+            initImgSrc();
+        });
+        //scroll滑动,上滑和下滑只执行一次！
+        $(window).scroll(function() {
+            if (lastScTp < $(window).scrollTop()){
+                lastScTp = $(window).scrollTop();
+                //console.log(lastScTp);
+                initImgSrc();
+                fetchNewSrc();
+            }
+        });
+    })
+
+    /**
+     * 初始化可见img_viwer
+     */
+    function initImgSrc(){
+        var imgs = $("#img_viwer").find("img");
+        var $imgTmp = null;
+        for (var idx = 0; idx < imgs.length; idx ++){
+            $imgTmp = $(imgs[idx]);
+            //console.log($(window).scrollTop()+","+$(window).height()+","+$imgTmp.offset().top)
+            if ($(window).scrollTop()+$(window).height()>=($imgTmp.offset().top)
+            ){
+                if ($imgTmp.attr("src") == undefined || $imgTmp.attr("src") ==""){
+                    sdImgNumber++;
+                    $imgTmp.attr("src",$imgTmp.attr("img_src"));
+                    console.log("========================================sdImgNumber:"+sdImgNumber+"===========================");
+                }
+            }
+        }
+    }
+    //if (sdImgNumber%15 == 0){
+    /**
+     * 装载图片数据
+     */
+    function getImgRes(fkCallback){
+        var imgsHtml = "";
+        $.ajax({
+            url : 'http://localhost:3000/item/list/p/'+(++pg),
+            timeout : 60000,
+            type : "GET",
+            dataType : "json",
+            success : function(dt){
+                console.log("========================================ajax===========================");
+                console.dir(dt);
+                if (dt){
+                    for (var idx = 0;idx < dt.length;idx ++){
+                        imgsHtml += "<img src=\"\" alt=\"waiting\" img_src=\""+dt[idx].img+"\">";
+                    }
+                    $("#img_viwer").append(imgsHtml);
+                }
+            },
+            error : function(){
+                //alert("network error");
+                console.log("network error");
+            },
+            complete : function(){
+                fkCallback();
+            }
+        })
+    }
+
+    function fetchNewSrc(){
+        if (sdImgNumber > 0 && sdImgNumber/15 == 1){
+            getImgRes(function(){
+                //none
+                sdImgNumber = -4;
+                console.log("pg is:"+pg+",sdImgNumber:"+sdImgNumber);
+            });
+        }
+    }
+
+
+</script>
+</body>
+</html>
