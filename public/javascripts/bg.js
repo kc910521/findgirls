@@ -20,6 +20,11 @@ var db = new mongodb.Db('mdb', mongodbServer);
 /* open db */
 //=======================item============
 var pageNum = 20;//show @pageNum itms per page
+//----------------relase limit
+const EventEmitter  =  require('events').EventEmitter;
+var emitter = new EventEmitter();
+emitter.setMaxListeners(100);
+
 
 exports.findItemsEnd = function(res,page){
     page = page < 1?1:page;
@@ -69,6 +74,62 @@ exports.batchSaveItm = function(itmInfsStr){
     }else{
         console.log('batchSaveItm Failed to Insert');
     }
+}
+
+
+exports.initShowPage = function(endCallBack){
+    db.open(function() {
+        db.collection(tb_item, function(err, collection) {
+            collection.count(function(err, data) {
+                var adArr = null;
+                if (data) {
+
+                    adArr = takePageArrs(data);
+                    console.log("data:"+data+",arr:"+adArr);
+                } else {
+                    console.log("no data");
+                }
+                db.close();
+                endCallBack("girlShow",{title: 'GIRL SHOW',imgNumber:data,'pgArray':adArr});
+            });
+        });
+    });
+}
+/**
+ * 得到随机页码
+ * @param totalQty
+ * @returns {*}
+ */
+function takePageArrs(totalQty){
+    var lastPn = Math.ceil(totalQty/pageNum);
+    var maxShow = lastPn>99?99:lastPn;
+    //var pgArrs = [];
+    var vTmpIdx = null;
+    var vTemplate = [];
+    if (maxShow.length == 0){
+        return [1];
+    }
+    for (var idx = 1;idx <= maxShow;idx ++){
+        vTemplate.push(idx);
+    }
+    for (var idx = 0;idx < (maxShow/3)+1;idx ++){
+        vTmpIdx = Math.floor(Math.random()*maxShow);
+        var tmpVal = vTemplate[idx];
+        vTemplate[idx] = vTemplate[vTmpIdx];
+        vTemplate[vTmpIdx] = tmpVal;
+    }
+/*
+    暂时废弃====开始实行替换法造随机
+    for (var idx = 0;idx < maxShow/3;idx ++){
+        vTmp = (Math.random()*maxShow)+1;
+        if (contains(pgArrs,vTmp)){
+            idx --;
+        }else{
+            pgArrs.push(vTmp);
+            vTemplate.splice(vTmp-1,1);
+        }
+    }*/
+    return vTemplate;
 }
 //li_url is post url,not img
 /*

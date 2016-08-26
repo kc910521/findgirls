@@ -47,7 +47,15 @@ router.get('/history/ref', function(req, res) {
 });
 //============girl show url
 router.get('/show', function(req, res, next) {
-  res.render('girlShow', { title: 'Express' });
+  bg.initShowPage(function(title,_obj){
+    res.render(title, _obj);
+  });
+});
+//页码生成器
+router.get('/show/init', function(req, res) {
+  bg.initShowPage(function(title,_obj){
+    res.end(JSON.stringify(_obj));
+  });
 });
 
 

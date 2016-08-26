@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>GIRL SHOW</title>
+    <title>{{title}}</title>
 
     <link href="../public/stylesheets/bootstrap.min.css">
     <style>
@@ -36,9 +36,6 @@
 
     <div class="container">
         <div id="img_viwer" class="container in_middle img_container">
-<!--            <img src="" alt="waiting" img_src="../public/images/111.jpg">
-            <img src="" alt="waiting" img_src="../public/images/111.jpg">-->
-
         </div>
     </div>
 <script type="application/javascript" src="../public/javascripts/jquery-3.1.0.min.js"></script>
@@ -50,8 +47,10 @@
     var sdImgNumber = 0;
     //当前图片分页
     var pg = 0;
-
+    var pageArr = [{{pgArray}}];//model 随机页码数组
     $(function(){
+
+        alert(pageArr);
         getImgRes(function(){
             initImgSrc();
         });
@@ -75,8 +74,7 @@
         for (var idx = 0; idx < imgs.length; idx ++){
             $imgTmp = $(imgs[idx]);
             //console.log($(window).scrollTop()+","+$(window).height()+","+$imgTmp.offset().top)
-            if ($(window).scrollTop()+$(window).height()>=($imgTmp.offset().top)
-            ){
+            if ($(window).scrollTop()+$(window).height()>=($imgTmp.offset().top)){
                 if ($imgTmp.attr("src") == undefined || $imgTmp.attr("src") ==""){
                     sdImgNumber++;
                     $imgTmp.attr("src",$imgTmp.attr("img_src"));
@@ -85,14 +83,23 @@
             }
         }
     }
-    //if (sdImgNumber%15 == 0){
+
+    var goAjax = false;
     /**
      * 装载图片数据
      */
     function getImgRes(fkCallback){
         var imgsHtml = "";
+        var nxtPg = 0;
+        if (pageArr && pageArr.length > 1 && pg < pageArr.length){
+            nxtPg = pageArr[pg++];
+        }else{
+            nxtPg = pg++;
+        }
+        console.log("page:"+nxtPg);
+        goAjax = true;
         $.ajax({
-            url : 'http://localhost:3000/item/list/p/'+(++pg),
+            url : '/item/list/p/'+nxtPg,
             timeout : 60000,
             type : "GET",
             dataType : "json",
@@ -112,17 +119,20 @@
             },
             complete : function(){
                 fkCallback();
+                goAjax = false;
             }
         })
     }
 
     function fetchNewSrc(){
         if (sdImgNumber > 0 && sdImgNumber/15 == 1){
-            getImgRes(function(){
-                //none
-                sdImgNumber = -4;
-                console.log("pg is:"+pg+",sdImgNumber:"+sdImgNumber);
-            });
+            if (!goAjax){
+                getImgRes(function(){
+                    //none
+                    sdImgNumber = -4;
+                    console.log("pg is:"+pg+",sdImgNumber:"+sdImgNumber);
+                });
+            }
         }
     }
 
