@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-//var app = express();
+var app = express();
 /* GET home page. */
 var bg = require('../public/javascripts/bg');/*提供数据*/
 
@@ -8,15 +8,13 @@ router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express' });
 });
 
-router.get('/power', function(req, res) {
+/*router.get('/power', function(req, res) {
   res.render('power',{title:"最近文章", entries:bg.getBlogEntries()});
 });
-/**/
-//var http = require('http');
 router.get('/json/power/:id', function(req, res) {
   res.writeHead(200, {'Content-Type': 'application/json'});
   res.end(JSON.stringify(bg.getBlogEntry(req.params.id)));
-});
+});*/
 
 //====================user
 /*router.get('/user/name/:name/age/:age', function(req, res) {
@@ -28,7 +26,7 @@ router.get('/user/list', function(req, res) {
   res.writeHead(200, {'Content-Type': 'application/json'});
   bg.findUsersEnd(res);
 });*/
-//====================item
+//====================item`
 //pn 从1开始
 router.get('/item/list/p/:pn', function(req, res) {
   res.writeHead(200, {'Content-Type': 'application/json'});
@@ -57,7 +55,31 @@ router.get('/show/init', function(req, res) {
     res.end(JSON.stringify(_obj));
   });
 });
+var app = require('express')();
+var bodyParser = require('body-parser');
+//var multer = require('multer'); // v1.0.5
+//var upload = multer(); // for parsing multipart/form-data
 
-
+app.use(bodyParser.json()); // for parsing application/json
+app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
+//批量设置喜欢
+router.post('/show/favor/userId/:uid', function(req, res) {
+  res.writeHead(200, {'Content-Type': 'application/json'});
+  console.log(req.body)
+  console.log(req.params.uid);
+  bg.favorItem(req.body.fvids,req.params.uid);
+  res.end('{}');
+});
+//设置喜欢
+router.post('/show/favor', function(req, res) {
+  res.writeHead(200, {'Content-Type': 'application/json'});
+  bg.favorItemCount(req.body.fvids);
+  res.end('{}');
+});
+//得到最受欢迎的图片
+router.get('/show/favor', function(req, res) {
+  res.writeHead(200, {'Content-Type': 'application/json'});
+  bg.findMostPop(res);
+});
 
 module.exports = router;
