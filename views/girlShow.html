@@ -22,6 +22,7 @@
             max-height: 90%;
             min-height: 250px;
             margin-bottom: 2px;
+
         }
         .in_middle{
             text-align: center;
@@ -50,7 +51,7 @@
     var pageArr = [{{pgArray}}];//model 随机页码数组
     $(function(){
 
-        alert(pageArr);
+        //alert(pageArr);
         getImgRes(function(){
             initImgSrc();
         });
@@ -63,6 +64,9 @@
                 fetchNewSrc();
             }
         });
+        $(document).on("click","img",function(e){
+            downImg(this);
+        })
     })
 
     /**
@@ -134,6 +138,13 @@
                 });
             }
         }
+    }
+
+    function downImg(_obj){
+        var alink = document.createElement("a");
+        alink.href = $(_obj).attr("src");//img.src;
+        alink.download = "testImg.jpg";
+        alink.click();
     }
 
 
