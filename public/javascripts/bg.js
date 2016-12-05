@@ -23,24 +23,34 @@ var db = new mongodb.Db('mdb', mongodbServer);
 var objectId = mongodb.ObjectID;
 /* open db */
 //=======================item============
-var pageNum = 20;//show @pageNum itms per page
+//var pageNum = 20;//show @pageNum itms per page
 //----------------relase limit
 const EventEmitter  =  require('events').EventEmitter;
 var emitter = new EventEmitter();
 emitter.setMaxListeners(100);
 
 
-exports.findItemsEnd = function(res,page){
+exports.findItemsEnd = function(res,page,pageNum,itmType){
+    let pn = 20;
+    if (pageNum != undefined){
+        pn = parseInt(pageNum);//show @pageNum itms per page
+    }
+    var parObj = null;
+    if (itmType == undefined || itmType == 'null'){
+        parObj = {type:null};//show @pageNum itms per page
+    }else{
+        parObj = {type:parseInt(itmType)};
+    }
     page = page < 1?1:page;
     db.open(function() {
         db.collection(tb_item, function(err, collection) {
             if(err) throw err;
             else {
-                collection.find({}).limit(pageNum).skip(pageNum*(page-1)).toArray(function (err, docs) {
+                collection.find(parObj).limit(pn).skip(pn*(page-1)).toArray(function (err, docs) {
                     if (err) throw  err;
                     db.close();
                     res.charset = 'GBK';
-                    console.log(JSON.stringify(docs));
+                    console.log("parObj:"+JSON.stringify(parObj));
                     res.end(JSON.stringify(docs));
                 });
             }
@@ -85,14 +95,17 @@ exports.batchSaveItm = function(itmInfsStr){
 }
 
 
-exports.initShowPage = function(endCallBack){
+exports.initShowPage = function(ppn,endCallBack){
+    if (ppn == undefined){
+        ppn = 20;
+    }
     db.open(function() {
         db.collection(tb_item, function(err, collection) {
-            collection.count(function(err, data) {
+            collection.count({type:null},function(err, data) {
                 var adArr = null;
                 if (data) {
 
-                    adArr = takePageArrs(data);
+                    adArr = takePageArrs(data,ppn);
                     console.log("data:"+data+",arr:"+adArr);
                 } else {
                     console.log("no data");
@@ -410,7 +423,10 @@ function contains(a, obj,objParam) {
  * @param totalQty
  * @returns {*}
  */
-function takePageArrs(totalQty){
+function takePageArrs(totalQty,pageNum){
+    if (pageNum == undefined){
+        pageNum = 20;//show @pageNum itms per page
+    }
     let lastPn = Math.ceil(totalQty/pageNum);
     let maxShow = lastPn>99?99:lastPn;
     //var pgArrs = [];

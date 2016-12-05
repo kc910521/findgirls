@@ -30,8 +30,14 @@ router.get('/user/list', function(req, res) {
 //pn 从1开始
 router.get('/item/list/p/:pn', function(req, res) {
   res.writeHead(200, {'Content-Type': 'application/json'});
-  bg.findItemsEnd(res,req.params.pn);
+  bg.findItemsEnd(res,req.params.pn,20,null);
 });
+router.get('/item/list/p/:pn/npp/:npp/type/:itmtp', function(req, res) {
+  res.writeHead(200, {'Content-Type': 'application/json'});
+  bg.findItemsEnd(res,req.params.pn,req.params.npp,req.params.itmtp);
+});
+
+
 //obj_item###http://localhost:3000/item/batch/save?obj_items=[{"name":"91","img":"http://baidu.com/img"}]
 router.post('/item/batch/save', function(req, res) {
   res.writeHead(200, {'Content-Type': 'application/json'});
@@ -51,7 +57,13 @@ router.get('/show', function(req, res, next) {
 });
 //页码生成器
 router.get('/show/init', function(req, res) {
-  bg.initShowPage(function(title,_obj){
+  bg.initShowPage(null,function(title,_obj){
+    res.end(JSON.stringify(_obj));
+  });
+});
+//页码生成器2
+router.get('/show/init/npp/:npp', function(req, res) {
+  bg.initShowPage(req.params.npp,function(title,_obj){
     res.end(JSON.stringify(_obj));
   });
 });
