@@ -50,11 +50,11 @@ router.get('/history/ref', function(req, res) {
   bg.batchRefineUrl(res,req.query.urls);
 });
 //============girl show url
-router.get('/show', function(req, res, next) {
-  bg.initShowPage(function(title,_obj){
-    res.render(title, _obj);
-  });
-});
+// router.get('/show', function(req, res, next) {
+//   bg.initShowPage(function(title,_obj){
+//     res.render(title, _obj);
+//   });
+// });
 //页码生成器
 router.get('/show/init', function(req, res) {
   bg.initShowPage(null,function(title,_obj){

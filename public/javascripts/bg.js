@@ -16,9 +16,11 @@ var tb_item = "itm";//��Ŀ��
 var tb_history = "his";//liurl captured history
 var tb_user_favor = "favor";
 var tb_favor_count = "favor_count";
+//promise
+var Q = require("q");
 //mongodb lianjie
 var mongodb = require('mongodb');
-var mongodbServer = new mongodb.Server('localhost', 27017, { auto_reconnect: true, poolSize: 10 });
+var mongodbServer = new mongodb.Server('ck.lchbl.com', 27017, { auto_reconnect: true, poolSize: 10 });
 var db = new mongodb.Db('mdb', mongodbServer);
 var objectId = mongodb.ObjectID;
 /* open db */
@@ -93,13 +95,55 @@ exports.batchSaveItm = function(itmInfsStr){
         console.log('batchSaveItm Failed to Insert');
     }
 }
-
+var haveCollect = function () {
+    var deferred = Q.defer();
+    db.collection(tb_item, function(err, collection) {
+        if (err){
+            deferred.reject(err);
+        }else{
+            deferred.resolve(collection);
+        }
+    });
+    return deferred.promise;
+}
+var haveCount = function (collection) {
+    var deferred = Q.defer();
+    collection.count({type:null},function(err, data) {
+        if (err){
+            deferred.reject(err);
+        }else{
+            deferred.resolve(data);
+        }
+    });
+    return deferred.promise;
+}
 
 exports.initShowPage = function(ppn,endCallBack){
+    console.log("wtf:"+ppn);
     if (ppn == undefined){
         ppn = 20;
     }
     db.open(function() {
+        haveCollect().then(haveCount).done(function(data){
+            var adArr = null;
+            if (data) {
+                adArr = takePageArrs(data,ppn);
+                console.log("data:"+data+",arr:"+adArr);
+            } else {
+                console.log("no data");
+            }
+            db.close();
+            endCallBack("girlShow",{title: 'GIRL SHOW',imgNumber:data,'pgArray':adArr});
+        },function(err){
+            console.log(err);
+            db.close();
+        });
+    });
+
+
+    /**
+     *
+     *     db.open(function() {
         db.collection(tb_item, function(err, collection) {
             collection.count({type:null},function(err, data) {
                 var adArr = null;
@@ -115,6 +159,9 @@ exports.initShowPage = function(ppn,endCallBack){
             });
         });
     });
+     *
+     *
+     * **/
 }
 //将favorIds设置到喜爱的表中
 exports.favorItem = function(favorIdsStr,userId){
