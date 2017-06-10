@@ -57,13 +57,13 @@ router.get('/history/ref', function(req, res) {
 // });
 //页码生成器
 router.get('/show/init', function(req, res) {
-  bg.initShowPage(null,function(title,_obj){
+  bg.initShowPage(null,(title,_obj) => {
     res.end(JSON.stringify(_obj));
   });
 });
 //页码生成器2
 router.get('/show/init/npp/:npp', function(req, res) {
-  bg.initShowPage(req.params.npp,function(title,_obj){
+  bg.initShowPage(req.params.npp,(title,_obj) => {
     res.end(JSON.stringify(_obj));
   });
 });
@@ -75,7 +75,7 @@ var bodyParser = require('body-parser');
 app.use(bodyParser.json()); // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 //批量设置喜欢
-router.post('/show/favor/userId/:uid', function(req, res) {
+router.post('/show/favor/userId/:uid', (req, res) => {
   res.writeHead(200, {'Content-Type': 'application/json'});
   console.log(req.body)
   console.log(req.params.uid);
@@ -83,13 +83,13 @@ router.post('/show/favor/userId/:uid', function(req, res) {
   res.end('{}');
 });
 //设置喜欢
-router.post('/show/favor', function(req, res) {
+router.post('/show/favor', (req, res) => {
   res.writeHead(200, {'Content-Type': 'application/json'});
   bg.favorItemCount(req.body.fvids);
   res.end('{}');
 });
 //得到最受欢迎的图片
-router.get('/show/favor', function(req, res) {
+router.get('/show/favor', (req, res) => {
   res.writeHead(200, {'Content-Type': 'application/json'});
   bg.findMostPop(res);
 });

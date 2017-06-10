@@ -37,18 +37,18 @@ exports.findItemsEnd = function(res,page,pageNum,itmType){
     if (pageNum != undefined){
         pn = parseInt(pageNum);//show @pageNum itms per page
     }
-    var parObj = null;
+    let parObj = null;
     if (itmType == undefined || itmType == 'null'){
         parObj = {type:null};//show @pageNum itms per page
     }else{
         parObj = {type:parseInt(itmType)};
     }
     page = page < 1?1:page;
-    db.open(function() {
-        db.collection(tb_item, function(err, collection) {
+    db.open(() => {
+        db.collection(tb_item, (err, collection) => {
             if(err) throw err;
             else {
-                collection.find(parObj).limit(pn).skip(pn*(page-1)).toArray(function (err, docs) {
+                collection.find(parObj).limit(pn).skip(pn*(page-1)).toArray((err, docs) => {
                     if (err) throw  err;
                     db.close();
                     res.charset = 'GBK';
@@ -66,18 +66,18 @@ exports.findItemsEnd = function(res,page,pageNum,itmType){
  */
 exports.batchSaveItm = function(itmInfsStr){
     if (itmInfsStr){
-        var itmInfs = JSON.parse(itmInfsStr);
-        var isVld = true;
-        for (var idx = 0;idx < itmInfs.length; idx ++){
-            if (itmInfs[idx]['name'] == undefined || itmInfs[idx]['img'] == undefined){
+        let itmInfs = JSON.parse(itmInfsStr);
+        let isVld = true;
+        for (var itm of itmInfs){
+            if (itm['name'] == undefined || itm['img'] == undefined){
                 isVld = false;
                 break;
             }
         }
         if (isVld){
-            db.open(function() {
-                db.collection(tb_item, function(err, collection) {
-                    collection.insertMany(itmInfs, function(err, data) {
+            db.open(() => {
+                db.collection(tb_item, (err, collection) => {
+                    collection.insertMany(itmInfs, (err, data) => {
                         if (data) {
                             console.log('Successfully Insert');
                         } else {
@@ -95,9 +95,9 @@ exports.batchSaveItm = function(itmInfsStr){
         console.log('batchSaveItm Failed to Insert');
     }
 }
-var haveCollect = function () {
-    var deferred = Q.defer();
-    db.collection(tb_item, function(err, collection) {
+var haveCollect = function (tbName) {
+    let deferred = Q.defer();
+    db.collection(tbName, function(err, collection) {
         if (err){
             deferred.reject(err);
         }else{
@@ -108,7 +108,7 @@ var haveCollect = function () {
 }
 var haveCount = function (collection) {
     var deferred = Q.defer();
-    collection.count({type:null},function(err, data) {
+    collection.count({type:null},(err, data) => {
         if (err){
             deferred.reject(err);
         }else{
@@ -118,13 +118,13 @@ var haveCount = function (collection) {
     return deferred.promise;
 }
 
-exports.initShowPage = function(ppn,endCallBack){
+exports.initShowPage = function(ppn,endCallBack) {
     console.log("wtf:"+ppn);
     if (ppn == undefined){
         ppn = 20;
     }
-    db.open(function() {
-        haveCollect().then(haveCount).done(function(data){
+    db.open(() => {
+        haveCollect(tb_item).then(haveCount).done((data) => {
             var adArr = null;
             if (data) {
                 adArr = takePageArrs(data,ppn);
@@ -134,56 +134,33 @@ exports.initShowPage = function(ppn,endCallBack){
             }
             db.close();
             endCallBack("girlShow",{title: 'GIRL SHOW',imgNumber:data,'pgArray':adArr});
-        },function(err){
+        },(err) => {
             console.log(err);
             db.close();
         });
     });
-
-
-    /**
-     *
-     *     db.open(function() {
-        db.collection(tb_item, function(err, collection) {
-            collection.count({type:null},function(err, data) {
-                var adArr = null;
-                if (data) {
-
-                    adArr = takePageArrs(data,ppn);
-                    console.log("data:"+data+",arr:"+adArr);
-                } else {
-                    console.log("no data");
-                }
-                db.close();
-                endCallBack("girlShow",{title: 'GIRL SHOW',imgNumber:data,'pgArray':adArr});
-            });
-        });
-    });
-     *
-     *
-     * **/
 }
 //将favorIds设置到喜爱的表中
 exports.favorItem = function(favorIdsStr,userId){
     if (favorIdsStr != undefined && userId != undefined){
-        var favorIds = JSON.parse(favorIdsStr);
+        let favorIds = JSON.parse(favorIdsStr);
         if (!favorIds){
             return;
         }
-        db.open(function() {
-            db.collection(tb_user_favor, function(err, collection) {
+        db.open(() => {
+            db.collection(tb_user_favor, (err, collection) => {
                 var uFavs = [];
                 var tss = Date.parse(new Date());
-                for (var idx = 0;idx < favorIds.length; idx ++){
+                for (var itm of favorIds){
                     uFavs.push({//User.findOne({_id:ObjectID(id)},function(err,doc){…
-                        relImg : objectId(favorIds[idx]),
+                        relImg : objectId(itm),
                         userToken : userId,
                         updateTm : tss
                     });
                 }
                 //refine uFavs
                 //----
-                collection.insertMany(uFavs, function(err, data) {
+                collection.insertMany(uFavs, (err, data) => {
                     if (data) {
                         console.log('Successfully Insert fav:'+data);
                     } else {
@@ -204,13 +181,13 @@ exports.favorItem = function(favorIdsStr,userId){
  */
 exports.favorItemCount = function(favorIdsStr){
     if (favorIdsStr != undefined){
-        var favorIds = JSON.parse(favorIdsStr);
+        let favorIds = JSON.parse(favorIdsStr);
         if (!favorIds){
             return;
         }
-        var idObjects = [];
-        for (var idx = 0; idx < favorIds.length; idx ++){
-            idObjects.push(objectId(favorIds[idx]));
+        let idObjects = [];
+        for (var itm of favorIds){
+            idObjects.push(objectId(itm));
         }
         db.open(function() {
             db.collection(tb_favor_count, function(err, collection) {
@@ -224,11 +201,11 @@ exports.favorItemCount = function(favorIdsStr){
                 collection.find({relImg:{$in:idObjects}}).toArray(function(err,docs){
                     if (err) throw  err;
                     if (docs != null && docs.length >0){
-                        for (var idx = 0;idx < docs.length; idx ++){
+                        for (var doc of docs){
                             for (var i2dx = uFavs.length-1;i2dx >= 0;i2dx --){
-                                if (uFavs[i2dx].relImg.toString() == docs[idx].relImg.toString()){
+                                if (uFavs[i2dx].relImg.toString() ==doc.relImg.toString()){
                                     uFavs.splice(i2dx,1);
-                                    collection.update({relImg:docs[idx].relImg},{$set:{fvCount:docs[idx].fvCount+1}});
+                                    collection.update({relImg:doc.relImg},{$set:{fvCount:doc.fvCount+1}});
                                 }
                             }
                         }
@@ -313,26 +290,26 @@ exports.findMostPop = function(res){
 *
 * */
 exports.batchRefineUrl = function(res,urlsStr){
-    db.open(function() {
-        db.collection(tb_history, function(err, collection) {
+    db.open(() => {
+        db.collection(tb_history, (err, collection) => {
             var urls = JSON.parse(urlsStr);
-            collection.find({li_url:{$in:urls}}).toArray(function(err,docs){
+            collection.find({li_url:{$in:urls}}).toArray((err,docs) => {
                 if(err) throw  err;
                 else{
                     console.log(docs);
                     var lstArr = arr1Analysis(urls,docs);
                     var aJArr = [];
                     if (lstArr == null){
-                        for (var idx  =0; idx < urls.length; idx ++){
-                            aJArr.push({li_url : urls[idx]+''});
+                        for (var itm of urls){
+                            aJArr.push({li_url : itm+''});
                         }
                     }else{
-                        for (var idx  =0; idx < lstArr.length; idx ++){
-                            aJArr.push({li_url : lstArr[idx]+''});
+                        for (var itm of lstArr){
+                            aJArr.push({li_url : itm+''});
                         }
                     }
                     if (aJArr && aJArr.length > 0){
-                        collection.insertMany(aJArr, function(err, data) {
+                        collection.insertMany(aJArr, (err, data) => {
                             if(err) throw  err;
                             db.close();
                             if (aJArr) {
@@ -355,14 +332,14 @@ exports.batchRefineUrl = function(res,urlsStr){
 }
 //=======================user============
 exports.saveUser = function(name,age,sex){
-    db.open(function() {
-        db.collection(tb_user, function(err, collection) {
+    db.open(() => {
+        db.collection(tb_user, (err, collection) => {
             collection.insertMany([{
                     name: name+'',
                     age: age,
                     sex: 1+''
                 }
-            ], function(err, data) {
+            ], (err, data) => {
                 if (data) {
                     console.log('Successfully Insert');
                 } else {
@@ -375,11 +352,11 @@ exports.saveUser = function(name,age,sex){
 }
 
 exports.findUsersEnd = function(res){
-    db.open(function() {
-        db.collection(tb_user, function(err, collection) {
+    db.open(() => {
+        db.collection(tb_user, (err, collection) => {
             if(err) throw err;
             else {
-                collection.find({}).toArray(function (err, docs) {
+                collection.find({}).toArray((err, docs) => {
                     if (err) throw  err;
                     else {
                         console.log(docs);
@@ -409,14 +386,14 @@ function packImgItm(imgArr,hotArr){
     if (imgArr == undefined || hotArr == undefined){
         return null;
     }else{
-        for (var idx1 = 0;idx1 < imgArr.length;idx1 ++){
-            for (var idx2 = 0;idx2 < hotArr.length; idx2 ++){
-                if (hotArr[idx2].relImg.toString() == imgArr[idx1]._id.toString()){
-                    imgArr[idx1].hot = hotArr[idx2].fvCount;
+        for (var imgItm of imgArr){
+            for (let idx2 = 0;idx2 < hotArr.length; idx2 ++){
+                if (hotArr[idx2].relImg.toString() == imgItm._id.toString()){
+                    imgItm.hot = hotArr[idx2].fvCount;
                     break;
                 }
-                if (idx2 == hotArr.length-1 && imgArr[idx1].hot == undefined){
-                    imgArr[idx1].hot = 1;
+                if (idx2 == hotArr.length-1 && imgItm.hot == undefined){
+                    imgItm.hot = 1;
                 }
             }
         }
@@ -426,13 +403,13 @@ function packImgItm(imgArr,hotArr){
 
 
 //将目标数组转为指定属性的数组
-function pickToArray(obj,attr){
-    var tpArr = [];
-    if (obj == undefined){
+function pickToArray(_objs,attr){
+    let tpArr = [];
+    if (_objs == undefined){
         return null;
     }
-    for (var idx = 0; idx < obj.length; idx ++){
-        tpArr.push(obj[idx][attr+""]);
+    for (var itm of _objs){
+        tpArr.push(itm[attr + '']);
     }
     return tpArr;
 }
@@ -441,10 +418,10 @@ function arr1Analysis(orgArr,arr2){
     if (orgArr == undefined || arr2 == undefined || orgArr.length <= 0 || arr2.length <= 0){
         return null;
     }
-    var resArr = [];
-    for (var idx = 0; idx < orgArr.length ;idx ++){
-        if (!contains(arr2,orgArr[idx],"li_url")){
-            resArr.push(orgArr[idx]);
+    let resArr = [];
+    for (var itm of orgArr){
+        if (!contains(arr2,itm,"li_url")){
+            resArr.push(itm);
         }
     }
     return resArr;
@@ -487,7 +464,7 @@ function takePageArrs(totalQty,pageNum){
     }
     for (let idx = 0;idx < (maxShow/3)+1;idx ++){
         vTmpIdx = Math.floor(Math.random()*maxShow);
-        var tmpVal = vTemplate[idx];
+        let tmpVal = vTemplate[idx];
         vTemplate[idx] = vTemplate[vTmpIdx];
         vTemplate[vTmpIdx] = tmpVal;
     }
