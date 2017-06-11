@@ -1,6 +1,8 @@
 /**
  * Created by robu on 2016/8/15.
  */
+import * as uts from "./utils/utils"
+import * as bgser from "./service/bgService"
 "use strict";
 var entries = [
     {"id":1, "title":"��һƪ", "body":"����", "published":"6/2/2013"},
@@ -30,6 +32,8 @@ var objectId = mongodb.ObjectID;
 const EventEmitter  =  require('events').EventEmitter;
 var emitter = new EventEmitter();
 emitter.setMaxListeners(100);
+
+
 
 
 exports.findItemsEnd = function(res,page,pageNum,itmType){
@@ -95,28 +99,7 @@ exports.batchSaveItm = function(itmInfsStr){
         console.log('batchSaveItm Failed to Insert');
     }
 }
-var haveCollect = function (tbName) {
-    let deferred = Q.defer();
-    db.collection(tbName, function(err, collection) {
-        if (err){
-            deferred.reject(err);
-        }else{
-            deferred.resolve(collection);
-        }
-    });
-    return deferred.promise;
-}
-var haveCount = function (collection) {
-    var deferred = Q.defer();
-    collection.count({type:null},(err, data) => {
-        if (err){
-            deferred.reject(err);
-        }else{
-            deferred.resolve(data);
-        }
-    });
-    return deferred.promise;
-}
+
 
 exports.initShowPage = function(ppn,endCallBack) {
     console.log("wtf:"+ppn);
@@ -124,10 +107,10 @@ exports.initShowPage = function(ppn,endCallBack) {
         ppn = 20;
     }
     db.open(() => {
-        haveCollect(tb_item).then(haveCount).done((data) => {
+        bgser.haveCollect(tb_item).then(bgser.haveCount).done((data) => {
             var adArr = null;
             if (data) {
-                adArr = takePageArrs(data,ppn);
+                adArr = uts.takePageArrs(data,ppn);
                 console.log("data:"+data+",arr:"+adArr);
             } else {
                 console.log("no data");
@@ -237,21 +220,21 @@ exports.favorItemCount = function(favorIdsStr){
  * @param page
  */
 exports.findMostPop = function(res){
-    db.open(function() {
+    db.open(() => {
         //先查计数表
-        db.collection(tb_favor_count,function(err2, fc_coll){
+        db.collection(tb_favor_count,(err2, fc_coll) => {
             if(err2) throw err2;
             fc_coll.find({}).sort({"fvCount":-1}).limit(30).skip(0).toArray(function (err, docs){
-                var iArr = pickToArray(docs,"relImg");
+                var iArr = uts.pickToArray(docs,"relImg");
                 res.charset = 'GBK';
                 if (iArr != null){
                     //再查条目主表
-                    db.collection(tb_item, function(err, collection) {
+                    db.collection(tb_item, (err, collection) => {
                         if(err) throw err;
                         else {
                             collection.find({_id:{$in:iArr}}).toArray(function(err4, docs2){
                                 if(err4) throw err4;
-                                res.end(JSON.stringify(packImgItm(docs2,docs)));
+                                res.end(JSON.stringify(uts.packImgItm(docs2,docs)));
                                 db.close();
                             });
                         }
@@ -292,13 +275,13 @@ exports.findMostPop = function(res){
 exports.batchRefineUrl = function(res,urlsStr){
     db.open(() => {
         db.collection(tb_history, (err, collection) => {
-            var urls = JSON.parse(urlsStr);
+            let urls = JSON.parse(urlsStr);
             collection.find({li_url:{$in:urls}}).toArray((err,docs) => {
                 if(err) throw  err;
                 else{
                     console.log(docs);
-                    var lstArr = arr1Analysis(urls,docs);
-                    var aJArr = [];
+                    let lstArr = uts.arr1Analysis(urls,docs);
+                    let aJArr = [];
                     if (lstArr == null){
                         for (var itm of urls){
                             aJArr.push({li_url : itm+''});
@@ -382,113 +365,3 @@ exports.findUsersEnd = function(res){
         });
     });
 }
-function packImgItm(imgArr,hotArr){
-    if (imgArr == undefined || hotArr == undefined){
-        return null;
-    }else{
-        for (var imgItm of imgArr){
-            for (let idx2 = 0;idx2 < hotArr.length; idx2 ++){
-                if (hotArr[idx2].relImg.toString() == imgItm._id.toString()){
-                    imgItm.hot = hotArr[idx2].fvCount;
-                    break;
-                }
-                if (idx2 == hotArr.length-1 && imgItm.hot == undefined){
-                    imgItm.hot = 1;
-                }
-            }
-        }
-        return imgArr;
-    }
-}
-
-
-//将目标数组转为指定属性的数组
-function pickToArray(_objs,attr){
-    let tpArr = [];
-    if (_objs == undefined){
-        return null;
-    }
-    for (var itm of _objs){
-        tpArr.push(itm[attr + '']);
-    }
-    return tpArr;
-}
-//得到orgArr不存在于arr2的所有元素
-function arr1Analysis(orgArr,arr2){
-    if (orgArr == undefined || arr2 == undefined || orgArr.length <= 0 || arr2.length <= 0){
-        return null;
-    }
-    let resArr = [];
-    for (var itm of orgArr){
-        if (!contains(arr2,itm,"li_url")){
-            resArr.push(itm);
-        }
-    }
-    return resArr;
-}
-function contains(a, obj,objParam) {
-    var i = a.length;
-    while (i--) {
-        if (objParam){
-            if (a[i][objParam] === obj) {
-                return true;
-            }
-        }else{
-            if (a[i] === obj) {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
-/**
- * 得到随机页码
- * @param totalQty
- * @returns {*}
- */
-function takePageArrs(totalQty,pageNum){
-    if (pageNum == undefined){
-        pageNum = 20;//show @pageNum itms per page
-    }
-    let lastPn = Math.ceil(totalQty/pageNum);
-    let maxShow = lastPn>99?99:lastPn;
-    //var pgArrs = [];
-    let vTmpIdx = null;
-    let vTemplate = [];
-    if (maxShow.length == 0){
-        return [1];
-    }
-    for (let idx = 1;idx <= maxShow;idx ++){
-        vTemplate.push(idx);
-    }
-    for (let idx = 0;idx < (maxShow/3)+1;idx ++){
-        vTmpIdx = Math.floor(Math.random()*maxShow);
-        let tmpVal = vTemplate[idx];
-        vTemplate[idx] = vTemplate[vTmpIdx];
-        vTemplate[vTmpIdx] = tmpVal;
-    }
-    /*
-     暂时废弃====开始实行替换法造随机
-     for (var idx = 0;idx < maxShow/3;idx ++){
-     vTmp = (Math.random()*maxShow)+1;
-     if (contains(pgArrs,vTmp)){
-     idx --;
-     }else{
-     pgArrs.push(vTmp);
-     vTemplate.splice(vTmp-1,1);
-     }
-     }*/
-    return vTemplate;
-}
-/*
-exports.getBlogEntries = function (){
-    return entries;
-}
-
-
-exports.getBlogEntry = function (id){
-    for(var i=0; i < entries.length; i++){
-        if(entries[i].id == id) return entries[i];
-    }
-}*/

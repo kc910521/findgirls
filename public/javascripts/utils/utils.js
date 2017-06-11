@@ -5,14 +5,14 @@ function packImgItm(imgArr,hotArr){
     if (imgArr == undefined || hotArr == undefined){
         return null;
     }else{
-        for (var idx1 = 0;idx1 < imgArr.length;idx1 ++){
-            for (var idx2 = 0;idx2 < hotArr.length; idx2 ++){
-                if (hotArr[idx2].relImg.toString() == imgArr[idx1]._id.toString()){
-                    imgArr[idx1].hot = hotArr[idx2].fvCount;
+        for (var imgItm of imgArr){
+            for (let idx2 = 0;idx2 < hotArr.length; idx2 ++){
+                if (hotArr[idx2].relImg.toString() == imgItm._id.toString()){
+                    imgItm.hot = hotArr[idx2].fvCount;
                     break;
                 }
-                if (idx2 == hotArr.length-1 && imgArr[idx1].hot == undefined){
-                    imgArr[idx1].hot = 1;
+                if (idx2 == hotArr.length-1 && imgItm.hot == undefined){
+                    imgItm.hot = 1;
                 }
             }
         }
@@ -22,14 +22,15 @@ function packImgItm(imgArr,hotArr){
 
 
 
+
 //将目标数组转为指定属性的数组
-function pickToArray(obj,attr){
-    var tpArr = [];
-    if (obj == undefined){
+function pickToArray(_objs,attr){
+    let tpArr = [];
+    if (_objs == undefined){
         return null;
     }
-    for (var idx = 0; idx < obj.length; idx ++){
-        tpArr.push(obj[idx][attr+""]);
+    for (var itm of _objs){
+        tpArr.push(itm[attr + '']);
     }
     return tpArr;
 }
@@ -38,10 +39,10 @@ function arr1Analysis(orgArr,arr2){
     if (orgArr == undefined || arr2 == undefined || orgArr.length <= 0 || arr2.length <= 0){
         return null;
     }
-    var resArr = [];
-    for (var idx = 0; idx < orgArr.length ;idx ++){
-        if (!contains(arr2,orgArr[idx],"li_url")){
-            resArr.push(orgArr[idx]);
+    let resArr = [];
+    for (var itm of orgArr){
+        if (!contains(arr2,itm,"li_url")){
+            resArr.push(itm);
         }
     }
     return resArr;
