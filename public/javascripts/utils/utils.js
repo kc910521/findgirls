@@ -1,7 +1,9 @@
 /**
  * Created by robu on 2017/6/2.
  */
-function packImgItm(imgArr,hotArr){
+"use strict";
+
+exports.packImgItm = function(imgArr,hotArr){
     if (imgArr == undefined || hotArr == undefined){
         return null;
     }else{
@@ -24,7 +26,7 @@ function packImgItm(imgArr,hotArr){
 
 
 //将目标数组转为指定属性的数组
-function pickToArray(_objs,attr){
+exports.pickToArray = function(_objs,attr){
     let tpArr = [];
     if (_objs == undefined){
         return null;
@@ -35,7 +37,7 @@ function pickToArray(_objs,attr){
     return tpArr;
 }
 //得到orgArr不存在于arr2的所有元素
-function arr1Analysis(orgArr,arr2){
+exports.arr1Analysis = function(orgArr,arr2){
     if (orgArr == undefined || arr2 == undefined || orgArr.length <= 0 || arr2.length <= 0){
         return null;
     }
@@ -47,7 +49,7 @@ function arr1Analysis(orgArr,arr2){
     }
     return resArr;
 }
-function contains(a, obj,objParam) {
+exports.contains = function(a, obj,objParam) {
     var i = a.length;
     while (i--) {
         if (objParam){
@@ -68,7 +70,7 @@ function contains(a, obj,objParam) {
  * @param totalQty
  * @returns {*}
  */
-function takePageArrs(totalQty,pageNum){
+exports.takePageArrs = function(totalQty,pageNum){
     if (pageNum == undefined){
         pageNum = 20;//show @pageNum itms per page
     }
@@ -101,11 +103,4 @@ function takePageArrs(totalQty,pageNum){
      }
      }*/
     return vTemplate;
-}
-export {
-    packImgItm as packImgItm,
-    takePageArrs as takePageArrs,
-    contains as contains,
-    arr1Analysis as arr1Analysis,
-    pickToArray as pickToArray
 }

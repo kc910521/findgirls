@@ -1,6 +1,8 @@
 /**
  * Created by KCSTATION on 2017/6/11.
  */
+"use strict";
+
 var Q = require("q");
 //mongodb lianjie
 var mongodb = require('mongodb');

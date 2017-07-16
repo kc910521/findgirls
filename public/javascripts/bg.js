@@ -1,9 +1,14 @@
+// import * as uts from "./utils/utils"
+// import * as bgser from "./service/bgService"
+
 /**
  * Created by robu on 2016/8/15.
  */
-import * as uts from "./utils/utils"
-import * as bgser from "./service/bgService"
+
 "use strict";
+var uts = require("./utils/utils")
+var bgser = require("./service/bgService")
+
 var entries = [
     {"id":1, "title":"��һƪ", "body":"����", "published":"6/2/2013"},
     {"id":2, "title":"�ڶ�ƪ", "body":"����", "published":"6/3/2013"},
@@ -284,7 +289,7 @@ exports.batchRefineUrl = function(res,urlsStr){
                     let aJArr = [];
                     if (lstArr == null){
                         for (var itm of urls){
-                            aJArr.push({li_url : itm+''});
+                            aJArr.push({li_url : itm + ''});
                         }
                     }else{
                         for (var itm of lstArr){
